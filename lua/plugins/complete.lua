@@ -1,3 +1,4 @@
+-- nvim-cmp plugin configuration
 return {
   "hrsh7th/nvim-cmp",
   lazy = true,
@@ -13,18 +14,25 @@ return {
     "onsails/lspkind-nvim",
   },
   config = function()
+    -- Load required modules
     local lspkind = require("lspkind")
     local luasnip = require("luasnip")
     local cmp = require("cmp")
+    -- Setup nvim-cmp
     cmp.setup({
+      -- Snippet configuration
       snippet = {
         expand = function(args)
           require("luasnip").lsp_expand(args.body)
         end,
       },
+      -- Key mappings
       mapping = cmp.mapping.preset.insert({
+        -- Scroll documentation up
         ["<C-u>"] = cmp.mapping(cmp.mapping.scroll_docs(-4), { "i", "c", }),
+        -- Scroll documentation down
         ["<C-d>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c", }),
+        -- Confirm selection or expand snippet
         ["<CR>"] = cmp.mapping(function(fallback)
           if cmp.visible() then
             if luasnip.expandable() then
@@ -38,6 +46,7 @@ return {
             fallback()
           end
         end),
+        -- Select next item or jump in snippet
         ["<Tab>"] = cmp.mapping(function(fallback)
           if cmp.visible() then
             cmp.select_next_item()
@@ -47,6 +56,7 @@ return {
             fallback()
           end
         end, { "i", "s", }),
+        -- Select previous item or jump back in snippet
         ["<S-Tab>"] = cmp.mapping(function(fallback)
           if cmp.visible() then
             cmp.select_prev_item()
@@ -56,28 +66,30 @@ return {
             fallback()
           end
         end, { "i", "s", }),
+        -- Abort completion
         ["<C-e>"] = cmp.mapping.abort(),
       }),
+      -- Completion sources
       sources = cmp.config.sources({
         { name = "nvim_lsp", },
         { name = "vsnip", },
         { name = "buffer", },
         { name = "path", },
       }),
-      -- 使用lspkind-nvim显示类型图标
+      -- Formatting configuration using lspkind
       formatting = {
         format = lspkind.cmp_format({
           with_text = true,
           maxwidth = 50,
           before = function(entry, vim_item)
-            -- Source 显示提示来源
+            -- Add source name to menu
             vim_item.menu = "[" .. string.upper(entry.source.name) .. "]"
             return vim_item
           end,
         }),
       },
     })
-    -- load vscode snippet (friendly-snippet)
+    -- Load vscode-style snippets
     require("luasnip.loaders.from_vscode").lazy_load()
   end,
 }

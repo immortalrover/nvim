@@ -1,60 +1,65 @@
 return {
+  -- Plugin specification for avante.nvim
   "yetone/avante.nvim",
+  -- Load the plugin very lazily
   event = "VeryLazy",
-  version = false, -- Never set this value to "*"! Never!
+  -- Version specification (never use "*")
+  version = false,
+  -- Configuration options for the plugin
   opts = {
-    -- add any opts here
-    -- for example
-    -- provider = "ollama",
-    -- ollama = {
-    --   endpoint = "http://127.0.0.1:11434", -- Note that there is no /v1 at the end.
-    --   model = "qwq:latest",
-    -- },
+    -- Set the default provider to deepseek
     provider = "deepseek",
+    -- Vendor-specific configurations
     vendors = {
       deepseek = {
+        -- Inherit settings from openai configuration
         __inherited_from = "openai",
+        -- Environment variable name for API key
         api_key_name = "DEEPSEEK_API_KEY",
+        -- API endpoint URL
         endpoint = "https://api.deepseek.com",
+        -- Model to use
         model = "deepseek-coder",
+        -- Proxy settings (empty by default)
         proxy = "",
       },
     },
   },
-  -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+  -- Build command for Linux/MacOS
   build = "make",
-  -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+  -- Optional build command for Windows
+  -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false",
+  -- Plugin dependencies
   dependencies = {
+    -- Required dependencies
     "nvim-treesitter/nvim-treesitter",
     "stevearc/dressing.nvim",
     "nvim-lua/plenary.nvim",
     "MunifTanjim/nui.nvim",
-    --- The below dependencies are optional,
-    "echasnovski/mini.pick",         -- for file_selector provider mini.pick
-    "nvim-telescope/telescope.nvim", -- for file_selector provider telescope
-    "hrsh7th/nvim-cmp",              -- autocompletion for avante commands and mentions
-    "ibhagwan/fzf-lua",              -- for file_selector provider fzf
-    "nvim-tree/nvim-web-devicons",   -- or echasnovski/mini.icons
-    "zbirenbaum/copilot.lua",        -- for providers='copilot'
+    -- Optional dependencies
+    "echasnovski/mini.pick",         -- File selector provider using mini.pick
+    "nvim-telescope/telescope.nvim", -- File selector provider using telescope
+    "hrsh7th/nvim-cmp",              -- Autocompletion support
+    "ibhagwan/fzf-lua",              -- File selector provider using fzf
+    "nvim-tree/nvim-web-devicons",   -- Icons support (alternative: mini.icons)
+    "zbirenbaum/copilot.lua",        -- Copilot provider support
+    -- Image pasting support
     {
-      -- support for image pasting
       "HakonHarnes/img-clip.nvim",
       event = "VeryLazy",
       opts = {
-        -- recommended settings
         default = {
           embed_image_as_base64 = false,
           prompt_for_file_name = false,
           drag_and_drop = {
             insert_mode = true,
           },
-          -- required for Windows users
-          use_absolute_path = true,
+          use_absolute_path = true, -- Required for Windows users
         },
       },
     },
+    -- Markdown rendering support
     {
-      -- Make sure to set this up properly if you have lazy=true
       "MeanderingProgrammer/render-markdown.nvim",
       opts = {
         file_types = { "markdown", "Avante", },
