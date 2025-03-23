@@ -4,6 +4,7 @@ local k = vim.keymap
 local a = vim.api
 
 g.mapleader = " "
+o.laststatus = 3
 o.number = true
 o.relativenumber = true
 o.hlsearch = true
