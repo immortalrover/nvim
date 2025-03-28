@@ -7,6 +7,8 @@ local a = vim.api
 g.mapleader = " "
 -- Use global statusline
 o.laststatus = 3
+o.statusline = "%!v:lua.require'statusline'.build()"
+o.showmode = false
 -- Show line numbers
 o.number = true
 -- Show relative line numbers
@@ -42,7 +44,10 @@ o.listchars = {
 }
 -- Set maximum text width
 o.textwidth = 80
-
+o.foldmethod = "indent"
+-- o.foldexpr = "nvim_treesitter#foldexpr()"
+o.foldenable = false
+o.foldlevel = 99
 -- Set yank to system clipboard with leader+y
 k.set({"n", "v"}, "<leader>y", [["+y]])
 -- Set filetype specific options for nix and lua files
@@ -56,3 +61,4 @@ a.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
     vim.opt_local.expandtab = true
   end,
 })
+

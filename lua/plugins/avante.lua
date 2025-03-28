@@ -7,23 +7,127 @@ return {
   version = false,
   -- Configuration options for the plugin
   opts = {
+    -- provider = "claude",
+    -- claude = {
+    --   api_key_name = "ANTHROPIC_API_KEY",
+    -- }
     -- Set the default provider to deepseek
-    provider = "deepseek",
+    provider = "aaaclaude",
     -- Vendor-specific configurations
     vendors = {
-      deepseek = {
-        -- Inherit settings from openai configuration
-        __inherited_from = "openai",
-        -- Environment variable name for API key
-        api_key_name = "DEEPSEEK_API_KEY",
-        -- API endpoint URL
-        endpoint = "https://api.deepseek.com",
-        -- Model to use
-        model = "deepseek-coder",
-        -- Proxy settings (empty by default)
-        proxy = "",
-      },
+      ---@type AvanteProvider
+      ["aaaclaude"] = {
+        endpoint = "https://api.gptsapi.net/v1/chat/completions",
+        model = "claude-3-7-sonnet-20250219",
+        api_key_name = "ANTHROPIC_API_KEY",
+
+        parse_curl_args = function(opts, code_opts)
+          -- 构建请求头
+          local headers = {
+            "Content-Type: application/json",
+            "anthropic-version: 2023-06-01",
+            "x-api-key: " .. vim.env[opts.api_key_name],
+          }
+
+          -- 构建多模态消息内容
+          local content = {
+            {
+              type = "text",
+              text = opts.question .. "\n\n" 
+                .. "代码语言: " .. opts.code_lang .. "\n"
+                .. "完整代码:\n" .. opts.code_content
+            }
+          }
+
+          -- 添加选中代码片段（如果有）
+          if code_opts.selected_code_content then
+            table.insert(content, {
+              type = "text",
+              text = "\n选中代码片段:\n" .. code_opts.selected_code_content
+            })
+          end
+
+          -- 构建请求体
+          local body = vim.json.encode({
+            model = opts.model,
+            messages = {{
+              role = "user",
+              content = content
+            }},
+            max_tokens = 4096,
+            stream = true
+          })
+
+          return {
+            method = "POST",
+            headers = headers,
+            body = body
+          }
+        end,
+
+        parse_response = function(data_stream, event_state, opts)
+          -- 处理 Claude 的 SSE 响应流
+          for line in data_stream:gmatch("[^\r\n]+") do
+            if line:find("^event: ") then
+              event_state = line:sub(8) -- 获取事件类型
+            elseif line:find("^data: ") then
+              local json_str = line:sub(6)
+              local ok, data = pcall(vim.json.decode, json_str)
+              if not ok then
+                opts.on_complete("JSON 解析错误")
+                return
+              end
+
+              -- 处理不同事件类型
+              if event_state == "message_start" then
+                opts.on_start() -- 开始处理
+              elseif event_state == "content_block_delta" then
+                if data.delta and data.delta.text then
+                  opts.on_chunk(data.delta.text) -- 实时输出文本
+                end
+              elseif event_state == "message_stop" then
+                opts.on_complete() -- 完成处理
+              elseif event_state == "error" then
+                opts.on_complete("API 错误: " .. (data.error.message or "未知错误"))
+              end
+            end
+          end
+        end,
+
+        -- 高级错误处理
+        on_error = function(result)
+          if result.status == 429 then
+            return "请求过于频繁，请稍后再试"
+          end
+          local ok, err_data = pcall(vim.json.decode, result.body)
+          if ok and err_data.error then
+            return string.format("API 错误 (%d): %s", result.status, err_data.error.message)
+          end
+          return "未知错误: " .. result.body
+        end
+      }
     },
+    -- -- Set the default provider to deepseek
+    -- provider = "deepseek",
+    -- -- Vendor-specific configurations
+    -- vendors = {
+    --   deepseek = {
+    --     -- Inherit settings from openai configuration
+    --     __inherited_from = "openai",
+    --     -- Environment variable name for API key
+    --     api_key_name = "DEEPSEEK_API_KEY",
+    --     -- API endpoint URL
+    --     endpoint = "https://api.deepseek.com",
+    --     -- Model to use
+    --     model = "deepseek-coder",
+    --     -- Proxy settings (empty by default)
+    --     proxy = "",
+    --   },
+    -- },
+    -- provider = "ollama",
+    -- ollama = {
+    --   model = "qwq:latest",
+    -- },
   },
   -- Build command for Linux/MacOS
   build = "make",
