@@ -5,9 +5,8 @@ local a = vim.api
 
 -- Set space as the leader key
 g.mapleader = " "
--- Use global statusline
 o.laststatus = 3
-o.statusline = "%!v:lua.require'statusline'.build()"
+-- o.statusline = "%!v:lua.require'statusline'.build()"
 o.showmode = false
 -- Show line numbers
 o.number = true
@@ -51,6 +50,17 @@ o.foldlevel = 99
 -- Set yank to system clipboard with leader+y
 k.set({"n", "v"}, "<leader>y", [["+y]])
 -- Set filetype specific options for nix and lua files
+
+-- 定义快捷键 <leader>r 重新加载配置（并显示提示）
+k.set('n', '<leader>r', function()
+  -- 重新加载 Lua 配置文件
+  vim.cmd('luafile ' .. vim.env.MYVIMRC)
+  -- 显示提示信息（Neovim 0.8+ 支持 vim.notify）
+  vim.notify('配置已重新加载！', vim.log.levels.INFO)
+end, { desc = '重新加载 Neovim 配置' })
+
+k.set('n', 'v', [[m'v]])
+k.set('v', '<Esc>', [[<Esc>`']])
 
 a.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   pattern = { "*.nix", "*.lua" },
